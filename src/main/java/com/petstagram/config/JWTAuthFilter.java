@@ -1,7 +1,7 @@
 package com.petstagram.config;
 
-import com.petstagram.service.JWTUtils;
-import com.petstagram.service.OurUserDetailsService;
+import com.petstagram.service.userService.JWTUtils;
+import com.petstagram.service.userService.OurUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.petstagram.service;
+package com.petstagram.service.userService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -17,7 +17,7 @@ import java.util.function.Function;
 public class JWTUtils {
 
     private SecretKey Key;
-    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 180000; // 30 minutes in milliseconds
+    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 1800000; // 30 minutes in milliseconds
     private static final long REFRESH_TOKEN_EXPIRATION_TIME = 604800000; // 7 days in milliseconds
 
     public JWTUtils(){

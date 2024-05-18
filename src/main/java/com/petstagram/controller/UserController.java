@@ -1,66 +1,80 @@
 package com.petstagram.controller;
 
 import com.petstagram.dto.UserDTO;
-import com.petstagram.entity.UserEntity;
-import com.petstagram.service.UserManagementService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.petstagram.service.userService.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/user")
 public class UserController {
-    @Autowired
-    private UserManagementService userManagementService;
 
-    @PostMapping("/users/signup")
+    private final UserService userService;
+
+    // 회원가입
+    @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody UserDTO userDTO){
         try {
-            UserDTO registeredUser = userManagementService.signup(userDTO);
+            UserDTO registeredUser = userService.signup(userDTO);
             return ResponseEntity.ok(registeredUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @PostMapping("/users/login")
+    // 로그인
+    @PostMapping("/login")
     public ResponseEntity<UserDTO> login(@RequestBody UserDTO userDTO){
-        return ResponseEntity.ok(userManagementService.login(userDTO));
+        return ResponseEntity.ok(userService.login(userDTO));
     }
 
-    @PostMapping("/auth/refresh")
+    // 새로고침 토큰
+    @PostMapping("/refresh")
     public ResponseEntity<UserDTO> refreshToken(@RequestBody UserDTO userDTO){
-        return ResponseEntity.ok(userManagementService.refreshToken(userDTO));
+        return ResponseEntity.ok(userService.refreshToken(userDTO));
     }
 
-    @GetMapping("/admin/get-all-users")
-    public ResponseEntity<UserDTO> getAllUsers(){
-        return ResponseEntity.ok(userManagementService.getAllUsers());
-
+    // 회원수정
+    @PutMapping("/update/{userId}")
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO){
+        return ResponseEntity.ok(userService.updateUser(userId, userDTO));
     }
 
-    @GetMapping("/admin/get-users/{userId}")
-    public ResponseEntity<UserDTO> getUSerByID(@PathVariable Long userId){
-        return ResponseEntity.ok(userManagementService.getUsersById(userId));
-
+    // 회원탈퇴
+    @DeleteMapping("/delete/{userId}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long userId){
+        try {
+            userService.deleteUser(userId);
+            return ResponseEntity.ok("회원을 탈퇴하셨습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 탈퇴에 실패했습니다.");
+        }
     }
 
-    @PutMapping("/admin/update/{userId}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long userId, @RequestBody UserEntity userEntity){
-        return ResponseEntity.ok(userManagementService.updateUser(userId, userEntity));
-    }
-
-    @GetMapping("/adminuser/get-profile")
+    // 회원 마이페이지
+    @GetMapping("/profile")
     public ResponseEntity<UserDTO> getMyProfile(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        UserDTO response = userManagementService.getMyInfo(email);
-        return  ResponseEntity.status(response.getStatusCode()).body(response);
+        UserDTO response = userService.getMyInfo(email);
+        return  ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/admin/delete/{userId}")
-    public ResponseEntity<UserDTO> deleteUSer(@PathVariable Long userId){
-        return ResponseEntity.ok(userManagementService.deleteUser(userId));
+    // 회원 모두 조회
+    @GetMapping("/getAllUsers")
+    public ResponseEntity<UserDTO> getAllUsers(){
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    // 회원 한명 조회
+    @GetMapping("/get/{userId}")
+    public ResponseEntity<UserDTO> getUSerByID(@PathVariable Long userId){
+        return ResponseEntity.ok(userService.getUsersById(userId));
+
     }
 }

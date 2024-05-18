@@ -1,6 +1,6 @@
 package com.petstagram.config;
 
-import com.petstagram.service.OurUserDetailsService;
+import com.petstagram.service.userService.OurUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,24 +22,32 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    //    @Autowired
+//    private CustomOAuth2UserService customOAuth2UserService;
     @Autowired
     private OurUserDetailsService ourUserDetailsService;
     @Autowired
     private JWTAuthFilter jwtAuthFilter;
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(request -> request.requestMatchers("/users/**", "/public/**").permitAll()
-                        .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/users/**").hasAnyAuthority("USER")
-                        .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN", "USER")
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(request -> {
+                    request.requestMatchers("/", "/oauth2/**", "/login/**", "/user/**", "/public/**").permitAll()
+                            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "USER")
+                            .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN", "USER")
+                            .anyRequest().authenticated();
+                })
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // OAuth2 로그인 설정 추가
+//        httpSecurity.oauth2Login(oauth2 -> oauth2
+//                .userInfoEndpoint(userInfoEndpointConfig ->
+//                        userInfoEndpointConfig.userService(customOAuth2UserService)));
+
         return httpSecurity.build();
     }
 
@@ -47,12 +55,12 @@ public class SecurityConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(ourUserDetailsService);
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setPasswordEncoder(bCryptPasswordEncoder());
         return daoAuthenticationProvider;
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -60,5 +68,4 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
 }

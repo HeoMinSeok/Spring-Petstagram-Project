@@ -1,4 +1,4 @@
-package com.petstagram.service;
+package com.petstagram.service.userService;
 
 import com.petstagram.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +12,9 @@ public class OurUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username).orElseThrow();
+        return userRepository.findByEmail(username);
     }
 }
