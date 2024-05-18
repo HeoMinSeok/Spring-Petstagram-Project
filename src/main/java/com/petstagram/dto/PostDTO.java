@@ -3,14 +3,14 @@ package com.petstagram.dto;
 import com.petstagram.entity.CommentEntity;
 import com.petstagram.entity.ImageEntity;
 import com.petstagram.entity.PostEntity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,10 +19,9 @@ public class PostDTO {
     private String postContent; // 게시물 내용(텍스트, 이미지, 비디오 링크 등).
     private Integer postLikesCount; // 게시물의 좋아요 수.
     private Integer postCommentsCount; // 게시물에 달린 댓글 수.
-
-    private String nickName; // 게시물을 작석한 사용자 닉네임
-
-    private List<ImageEntity> imageList;
+    private String email; // 게시물을 작성한 사용자 email
+    private LocalDateTime regTime;
+    private List<ImageDTO> imageList;
     private List<CommentEntity> commentList;
 
     // Entity -> DTO
@@ -30,8 +29,11 @@ public class PostDTO {
         return PostDTO.builder()
                 .id(postEntity.getId())
                 .postContent(postEntity.getPostContent())
-                .nickName(postEntity.getPostAuthorId().getNickName())
-                .imageList(postEntity.getImageList())
+                .email(postEntity.getPostAuthorId().getEmail())
+                .regTime(postEntity.getRegTime())
+                .imageList(postEntity.getImageList().stream()
+                        .map(ImageDTO::toDTO)
+                        .collect(Collectors.toList()))
                 .commentList(postEntity.getCommentList())
                 .build();
     }

@@ -1,9 +1,13 @@
 package com.petstagram.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "images")
+@Getter
+@Setter
 public class ImageEntity {
 
     @Id

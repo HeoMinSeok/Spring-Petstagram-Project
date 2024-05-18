@@ -66,6 +66,7 @@ public class PostEntity extends BaseEntity {
     public static PostEntity toEntity(PostDTO dto) {
         return PostEntity.builder()
                 .postContent(dto.getPostContent())
+                .imageList(new ArrayList<>())
                 .build();
     }
 }

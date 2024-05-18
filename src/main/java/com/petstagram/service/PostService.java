@@ -1,6 +1,7 @@
 package com.petstagram.service;
 
 import com.petstagram.dto.PostDTO;
+import com.petstagram.entity.ImageEntity;
 import com.petstagram.entity.PostEntity;
 import com.petstagram.entity.UserEntity;
 import com.petstagram.repository.PostRepository;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,32 +20,42 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class PostService {
-
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final FileUploadService fileUploadService;
 
     // 게시글 리스트 조회
     @Transactional(readOnly = true)
     public List<PostDTO> getPostList() {
         List<PostEntity> postEntityList = postRepository.findAllByOrderByIdDesc();
-
-        return postEntityList.stream().map(PostDTO::toDTO).collect(Collectors.toList());
+        return postEntityList.stream()
+                .map(PostDTO::toDTO)
+                .collect(Collectors.toList());
     }
 
+
     // 게시글 작성
-    public void writePost(PostDTO dto) {
+    public void writePost(PostDTO dto, MultipartFile file) {
         // 현재 인증된 사용자의 이름(또는 이메일 등의 식별 정보) 가져오기
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 현재 로그인한 사용자의 이름을 DB 에서 가져옴
         UserEntity userEntity = userRepository.findByEmail(username);
 
-
         // DTO -> Entity
         PostEntity postEntity = PostEntity.toEntity(dto);
 
         // 게시글에 사용자 할당
         userEntity.addPost(postEntity);
+
+        // 이미지 업로드 처리
+        if (file != null && !file.isEmpty()) {
+            String fileName = fileUploadService.storeFile(file);
+            ImageEntity imageEntity = new ImageEntity();
+            imageEntity.setImageUrl(fileName);
+            imageEntity.setPost(postEntity);
+            postEntity.getImageList().add(imageEntity);
+        }
 
         // DB에 저장
         postRepository.save(postEntity);
