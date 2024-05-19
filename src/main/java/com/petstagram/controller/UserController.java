@@ -1,6 +1,7 @@
 package com.petstagram.controller;
 
 import com.petstagram.dto.UserDTO;
+import com.petstagram.dto.UserProfileDTO;
 import com.petstagram.service.userService.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,9 +70,12 @@ public class UserController {
 
     // 회원 모두 조회
     @GetMapping("/getAllUsers")
-    public ResponseEntity<UserDTO> getAllUsers(){
-        return ResponseEntity.ok(userService.getAllUsers());
+    public List<UserProfileDTO> getAllUserProfiles() {
+        return userService.getAllUserProfiles();
     }
+//    public ResponseEntity<UserDTO> getAllUsers(){
+//        return ResponseEntity.ok(userService.getAllUsers());
+//    }
 
     // 회원 한명 조회
     @GetMapping("/get/{userId}")

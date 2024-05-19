@@ -1,6 +1,7 @@
 package com.petstagram.service.userService;
 
 import com.petstagram.dto.UserDTO;
+import com.petstagram.dto.UserProfileDTO;
 import com.petstagram.entity.UserEntity;
 import com.petstagram.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -132,11 +133,14 @@ public class UserService {
         return UserDTO.toDTO(userEntity);
     }
 
-    public UserDTO getAllUsers() {
-        UserDTO userDTO = new UserDTO();
-        List<UserEntity> result = userRepository.findAll();
-        userDTO.setUserEntityList(result);
-        return userDTO;
+    //    public UserDTO getAllUsers() {
+//        UserDTO userDTO = new UserDTO();
+//        List<UserEntity> result = userRepository.findAll();
+//        userDTO.setUserEntityList(result);
+//        return userDTO;
+//    }
+    public List<UserProfileDTO> getAllUserProfiles() {
+        return userRepository.findAllUserProfiles();
     }
 
     public UserDTO getUsersById(Long userId) {
