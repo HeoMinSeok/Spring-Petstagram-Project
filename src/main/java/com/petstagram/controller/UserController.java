@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class UserController {
 
     // 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody UserDTO userDTO){
+    public ResponseEntity<?> signup(@RequestBody UserDTO userDTO) {
         try {
             UserDTO registeredUser = userService.signup(userDTO);
             return ResponseEntity.ok(registeredUser);
@@ -32,25 +33,39 @@ public class UserController {
 
     // 로그인
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login(@RequestBody UserDTO userDTO){
+    public ResponseEntity<UserDTO> login(@RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.login(userDTO));
     }
 
     // 새로고침 토큰
     @PostMapping("/refresh")
-    public ResponseEntity<UserDTO> refreshToken(@RequestBody UserDTO userDTO){
+    public ResponseEntity<UserDTO> refreshToken(@RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.refreshToken(userDTO));
     }
 
     // 회원수정
     @PutMapping("/update/{userId}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO){
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long userId, @RequestBody UserDTO userDTO) {
         return ResponseEntity.ok(userService.updateUser(userId, userDTO));
+    }
+
+    @PutMapping(value = "/edit/{userId}", consumes = {"multipart/form-data"})
+    public ResponseEntity<String> editUser(@PathVariable Long userId,
+                                           @RequestPart("user") UserDTO userDTO,
+                                           @RequestPart(value = "file", required = false) MultipartFile file) {
+        try {
+            System.out.println("수신된 userDTO 데이터: " + userDTO);
+
+            userService.editUser(userId, userDTO, file);
+            return ResponseEntity.ok("수정 성공");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("수정 실패");
+        }
     }
 
     // 회원탈퇴
     @DeleteMapping("/delete/{userId}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long userId){
+    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
         try {
             userService.deleteUser(userId);
             return ResponseEntity.ok("회원을 탈퇴하셨습니다.");
@@ -61,11 +76,11 @@ public class UserController {
 
     // 회원 마이페이지
     @GetMapping("/profile")
-    public ResponseEntity<UserDTO> getMyProfile(){
+    public ResponseEntity<UserDTO> getMyProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         UserDTO response = userService.getMyInfo(email);
-        return  ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 
     // 회원 모두 조회
@@ -73,13 +88,10 @@ public class UserController {
     public List<UserProfileDTO> getAllUserProfiles() {
         return userService.getAllUserProfiles();
     }
-//    public ResponseEntity<UserDTO> getAllUsers(){
-//        return ResponseEntity.ok(userService.getAllUsers());
-//    }
 
     // 회원 한명 조회
     @GetMapping("/get/{userId}")
-    public ResponseEntity<UserDTO> getUSerByID(@PathVariable Long userId){
+    public ResponseEntity<UserDTO> getUSerByID(@PathVariable Long userId) {
         return ResponseEntity.ok(userService.getUsersById(userId));
 
     }

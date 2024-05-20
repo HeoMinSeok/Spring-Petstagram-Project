@@ -1,5 +1,6 @@
 package com.petstagram.entity;
 
+import com.petstagram.dto.ProfileImageDTO;
 import com.petstagram.dto.UserDTO;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,13 +29,20 @@ public class UserEntity implements UserDetails {
     private String email;
     private String name;
     private String password;
-    private String nickName;
-    private String profilePicture;
     private String role = "USER";
+
+    // 추가
+    private String gender; // 성별
+    private String bio; // 사용자 소개
+    private Boolean isRecommend; // 추천 여부, 기본값은 false
+
 
     // 사용자와 게시물은 일대다 관계
     @OneToMany(mappedBy = "postAuthorId", cascade = CascadeType.ALL)
     private List<PostEntity> postList = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private ProfileImageEntity profileImage;
 
     // == 연관관계 편의 메서드 == //
     // 게시물 관련 메서드
@@ -45,15 +53,39 @@ public class UserEntity implements UserDetails {
 
     // DTO -> Entity
     public static UserEntity toEntity(UserDTO userDTO, BCryptPasswordEncoder bCryptPasswordEncoder) {
-        return UserEntity.builder()
+        UserEntity userEntity = UserEntity.builder()
                 .id(userDTO.getId())
                 .email(userDTO.getEmail())
                 .name(userDTO.getName())
                 .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))
-                .nickName(userDTO.getNickName())
-                .profilePicture(userDTO.getProfilePicture())
                 .role(userDTO.getRole())
+                .gender(userDTO.getGender())
+                .bio(userDTO.getBio())
+                .isRecommend(userDTO.getIsRecommend())
                 .build();
+
+        // ProfileImageDTO가 존재하면 ProfileImageEntity로 변환하여 설정
+        if (userDTO.getProfileImage() != null) {
+            ProfileImageDTO profileImageDTO = userDTO.getProfileImage();
+            ProfileImageEntity profileImageEntity = new ProfileImageEntity();
+            profileImageEntity.setId(profileImageDTO.getId());
+            profileImageEntity.setImageUrl(profileImageDTO.getImageUrl());
+            profileImageEntity.setUser(userEntity);
+            userEntity.setProfileImage(profileImageEntity);
+        }
+
+        return userEntity;
+    }
+
+    public void setProfileImage(ProfileImageEntity profileImage) {
+        if (profileImage == null) {
+            if (this.profileImage != null) {
+                this.profileImage.setUser(null);
+            }
+        } else {
+            profileImage.setUser(this);
+        }
+        this.profileImage = profileImage;
     }
 
     @Override

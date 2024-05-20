@@ -2,14 +2,18 @@ package com.petstagram.service.userService;
 
 import com.petstagram.dto.UserDTO;
 import com.petstagram.dto.UserProfileDTO;
+import com.petstagram.entity.ProfileImageEntity;
 import com.petstagram.entity.UserEntity;
 import com.petstagram.repository.UserRepository;
+import com.petstagram.service.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,21 +21,20 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserService {
 
     private final UserRepository userRepository;
     private final JWTUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final FileUploadService fileUploadService;
 
     // 회원가입
     public UserDTO signup(UserDTO userDTO) {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
-//        if (userRepository.existsByNickName(userDTO.getNickName())) {
-//            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
-//        }
 
         // UserDTO 를 UserEntity 로 변환
         UserEntity userEntity = UserEntity.toEntity(userDTO, bCryptPasswordEncoder);
@@ -100,14 +103,9 @@ public class UserService {
         if (!userEntity.getEmail().equals(userDTO.getEmail()) && userRepository.existsByEmail(userDTO.getEmail())) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
-        // 현재 사용자의 닉네임과 수정하려는 닉네임이 다르면서, 수정하려는 닉네임이 이미 사용 중인지 확인
-        if (!userEntity.getNickName().equals(userDTO.getNickName()) && userRepository.existsByNickName(userDTO.getNickName())) { // 닉네임 중복 검사 추가
-            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
-        }
 
         userEntity.setEmail(userDTO.getEmail());
         userEntity.setName(userDTO.getName());
-        userEntity.setNickName(userDTO.getNickName());
 
         // userDTO 의 비밀번호가 null 이 아니고, 비어있지 않은 경우에만 업데이트
         // 새 비밀번호는 bCryptPasswordEncoder 를 사용하여 암호화
@@ -122,6 +120,33 @@ public class UserService {
         return UserDTO.toDTO(userEntity);
     }
 
+    // 회원 프로필 편집 ( bio, gender, image ) 추가
+    public UserDTO editUser(Long userId, UserDTO userDTO, MultipartFile file) {
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다. ID: " + userId));
+
+        userEntity.setBio(userDTO.getBio());
+        userEntity.setGender(userDTO.getGender());
+        userEntity.setIsRecommend(userDTO.getIsRecommend());
+
+        if (file != null && !file.isEmpty()) {
+            String fileName = fileUploadService.storeFile(file);
+
+            ProfileImageEntity profileImageEntity = userEntity.getProfileImage();
+            if (profileImageEntity == null) {
+                profileImageEntity = new ProfileImageEntity();
+            }
+            profileImageEntity.setImageUrl(fileName);
+            profileImageEntity.setUser(userEntity);
+
+            userEntity.setProfileImage(profileImageEntity);
+        }
+
+        userRepository.save(userEntity); // 변경 사항을 저장
+
+        return UserDTO.toDTO(userEntity);
+    }
+
     // 회원탈퇴
     public void deleteUser(Long userId) {
         userRepository.deleteById(userId);
@@ -133,12 +158,7 @@ public class UserService {
         return UserDTO.toDTO(userEntity);
     }
 
-    //    public UserDTO getAllUsers() {
-//        UserDTO userDTO = new UserDTO();
-//        List<UserEntity> result = userRepository.findAll();
-//        userDTO.setUserEntityList(result);
-//        return userDTO;
-//    }
+    // 모든 회원의 id, email, name, image 정보
     public List<UserProfileDTO> getAllUserProfiles() {
         return userRepository.findAllUserProfiles();
     }
