@@ -1,6 +1,5 @@
 package com.petstagram.controller;
 
-import com.petstagram.dto.ImageDTO;
 import com.petstagram.dto.PostDTO;
 import com.petstagram.service.FileUploadService;
 import com.petstagram.service.PostService;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -28,6 +26,13 @@ public class PostController {
     public ResponseEntity<List<PostDTO>> getPostList() {
         List<PostDTO> postList = postService.getPostList();
         return ResponseEntity.ok(postList);
+    }
+
+    // 사용자가 작성한 모든 게시물 조회
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<PostDTO>> getPostsByUserId(@PathVariable("userId") Long userId) {
+        List<PostDTO> postDTOList = postService.getPostsByUserId(userId);
+        return ResponseEntity.ok(postDTOList);
     }
 
     // 게시글 작성

@@ -4,6 +4,7 @@ import com.petstagram.dto.PostDTO;
 import com.petstagram.entity.ImageEntity;
 import com.petstagram.entity.PostEntity;
 import com.petstagram.entity.UserEntity;
+import com.petstagram.repository.PostLikeRepository;
 import com.petstagram.repository.PostRepository;
 import com.petstagram.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class PostService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final FileUploadService fileUploadService;
 
     // 게시글 리스트 조회
@@ -71,6 +73,23 @@ public class PostService {
         return PostDTO.toDTO(postEntity);
     }
 
+    // 사용자가 작성한 모든 게시물 및 좋아요 개수 조회
+    @Transactional(readOnly = true)
+    public List<PostDTO> getPostsByUserId(Long userId) {
+        List<PostEntity> postEntityList = postRepository.findByUserId(userId);
+
+        // Entity 리스트를 DTO 리스트로 변환
+        return postEntityList.stream().map(postEntity -> {
+            PostDTO postDTO = PostDTO.toDTO(postEntity);
+
+            // 특정 게시물에 대한 좋아요 개수 조회
+            long likesCount = postLikeRepository.countByPost(postEntity);
+            postDTO.setPostLikesCount(likesCount);
+
+            return postDTO;
+        }).collect(Collectors.toList());
+    }
+
     // 게시글 수정
     public PostDTO updatePost(Long postId, PostDTO postDTO) {
         // 게시글 ID로 게시물 찾기
@@ -79,7 +98,7 @@ public class PostService {
 
         // 현재 인증된 사용자의 이름(또는 이메일 등의 식별 정보) 가져오기
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!postEntity.getPostAuthorId().getEmail().equals(username)) {
+        if (!postEntity.getUser().getEmail().equals(username)) {
             throw new IllegalStateException("게시글 수정 권한이 없습니다.");
         }
 
@@ -101,7 +120,7 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다. ID: " + postId));
 
         // 게시글 소유자가 현재 인증된 사용자인지 확인
-        if (!postEntity.getPostAuthorId().getEmail().equals(username)) {
+        if (!postEntity.getUser().getEmail().equals(username)) {
             throw new IllegalStateException("게시글 삭제 권한이 없습니다.");
         }
 

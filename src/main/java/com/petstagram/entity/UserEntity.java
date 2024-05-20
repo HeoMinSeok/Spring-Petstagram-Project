@@ -38,7 +38,7 @@ public class UserEntity implements UserDetails {
 
 
     // 사용자와 게시물은 일대다 관계
-    @OneToMany(mappedBy = "postAuthorId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<PostEntity> postList = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
@@ -48,7 +48,7 @@ public class UserEntity implements UserDetails {
     // 게시물 관련 메서드
     public void addPost(PostEntity post) {
         postList.add(post);
-        post.setPostAuthorId(this);
+        post.setUser(this);
     }
 
     // DTO -> Entity
