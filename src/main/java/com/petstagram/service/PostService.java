@@ -26,13 +26,20 @@ public class PostService {
     private final PostLikeRepository postLikeRepository;
     private final FileUploadService fileUploadService;
 
-    // 게시글 리스트 조회
+    // 게시글 리스트 및 좋아요 개수 조회
     @Transactional(readOnly = true)
     public List<PostDTO> getPostList() {
         List<PostEntity> postEntityList = postRepository.findAllByOrderByIdDesc();
-        return postEntityList.stream()
-                .map(PostDTO::toDTO)
-                .collect(Collectors.toList());
+
+        return postEntityList.stream().map(postEntity -> {
+            PostDTO postDTO = PostDTO.toDTO(postEntity);
+
+            // 특정 게시물에 대한 좋아요 개수 조회
+            long likesCount = postLikeRepository.countByPost(postEntity);
+            postDTO.setPostLikesCount(likesCount);
+
+            return postDTO;
+        }).collect(Collectors.toList());
     }
 
 
@@ -42,7 +49,8 @@ public class PostService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         // 현재 로그인한 사용자의 이름을 DB 에서 가져옴
-        UserEntity userEntity = userRepository.findByEmail(username);
+        UserEntity userEntity = userRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다. email = " + username));
 
         // DTO -> Entity
         PostEntity postEntity = PostEntity.toEntity(dto);
@@ -63,14 +71,21 @@ public class PostService {
         postRepository.save(postEntity);
     }
 
-    // 게시글 상세보기
+    // 게시글 상세보기 및 좋아요 개수 조회
     @Transactional(readOnly = true)
     public PostDTO readPost(Long postId) {
         // 게시글 ID로 게시물 찾기
         PostEntity postEntity = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다. ID: " + postId));
+                .orElseThrow(() -> new EntityNotFoundException("해당 게시물을 찾을 수 없습니다."));
 
-        return PostDTO.toDTO(postEntity);
+        // 게시물에 대한 좋아요 개수 조회
+        long likesCount = postLikeRepository.countByPost(postEntity);
+
+        // postDTO 변환 및 좋아요 개수, 댓글 개수 설정
+        PostDTO postDTO = PostDTO.toDTO(postEntity);
+        postDTO.setPostLikesCount(likesCount);
+
+        return postDTO;
     }
 
     // 사용자가 작성한 모든 게시물 및 좋아요 개수 조회

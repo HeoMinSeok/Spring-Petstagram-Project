@@ -1,11 +1,15 @@
+
 package com.petstagram.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.petstagram.dto.PostDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -30,6 +34,7 @@ public class PostEntity extends BaseEntity {
     // 게시물과 사용자는 다대일 관계
     @ManyToOne(fetch = FetchType.LAZY) // FetchType.LAZY 는 지연 로딩을 의미
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private UserEntity user; // 게시물 작성자의 식별자.
 
     // 게시물과 이미지는 일대다 관계
@@ -39,6 +44,20 @@ public class PostEntity extends BaseEntity {
     // 게시물과 댓글은 일대다 관계
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommentEntity> commentList = new ArrayList<>();
+
+    // 게시물과 좋아요 수는 일대다 관계
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<PostLikeEntity> postLikeList = new HashSet<>();
+
+    // DTO -> Entity
+    public static PostEntity toEntity(PostDTO dto) {
+        return PostEntity.builder()
+                .postContent(dto.getPostContent())
+                .imageList(new ArrayList<>())
+                .commentList(new ArrayList<>())
+                .build();
+    }
 
     //    // 게시물과 해시태그는 다대다 관계
 //    @ManyToMany
@@ -62,11 +81,9 @@ public class PostEntity extends BaseEntity {
         commentEntity.setPost(this);
     }
 
-    // DTO -> Entity
-    public static PostEntity toEntity(PostDTO dto) {
-        return PostEntity.builder()
-                .postContent(dto.getPostContent())
-                .imageList(new ArrayList<>())
-                .build();
+    // 게시물 좋아요를 추가하는 메서드
+    public void addLike(PostLikeEntity postLikeEntity) {
+        this.postLikeList.add(postLikeEntity);
+        postLikeEntity.setPost(this);
     }
 }

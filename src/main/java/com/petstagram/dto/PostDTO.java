@@ -1,7 +1,5 @@
 package com.petstagram.dto;
 
-import com.petstagram.entity.CommentEntity;
-import com.petstagram.entity.ImageEntity;
 import com.petstagram.entity.PostEntity;
 import lombok.*;
 
@@ -18,11 +16,10 @@ public class PostDTO {
     private Long id; // 게시물 고유 식별자
     private String postContent; // 게시물 내용(텍스트, 이미지, 비디오 링크 등).
     private long postLikesCount; // 게시물의 좋아요 수.
-    private Integer postCommentsCount; // 게시물에 달린 댓글 수.
     private String email; // 게시물을 작성한 사용자 email
     private LocalDateTime regTime;
     private List<ImageDTO> imageList;
-    private List<CommentEntity> commentList;
+    private List<CommentDTO> commentList;
 
     // Entity -> DTO
     public static PostDTO toDTO(PostEntity postEntity) {
@@ -34,7 +31,9 @@ public class PostDTO {
                 .imageList(postEntity.getImageList().stream()
                         .map(ImageDTO::toDTO)
                         .collect(Collectors.toList()))
-                .commentList(postEntity.getCommentList())
+                .commentList(postEntity.getCommentList().stream()
+                        .map(CommentDTO::toDTO)
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

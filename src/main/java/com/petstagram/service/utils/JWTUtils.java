@@ -1,4 +1,4 @@
-package com.petstagram.service.userService;
+package com.petstagram.service.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

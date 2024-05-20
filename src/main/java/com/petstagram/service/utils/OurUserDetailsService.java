@@ -1,4 +1,4 @@
-package com.petstagram.service.userService;
+package com.petstagram.service.utils;
 
 import com.petstagram.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ public class OurUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username);
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. email = " + username));
     }
 }

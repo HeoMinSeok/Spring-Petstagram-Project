@@ -2,7 +2,7 @@ package com.petstagram.controller;
 
 import com.petstagram.dto.UserDTO;
 import com.petstagram.dto.UserProfileDTO;
-import com.petstagram.service.userService.UserService;
+import com.petstagram.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
