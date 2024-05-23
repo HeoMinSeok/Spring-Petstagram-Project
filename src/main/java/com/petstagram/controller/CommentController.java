@@ -46,4 +46,18 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 삭제에 실패헀습니다.");
         }
     }
+
+    // 댓글 좋아요 추가 및 삭제
+    @PostMapping("/toggle/{commentId}")
+    public ResponseEntity<String> toggleCommentLike(@PathVariable("commentId") Long commentId) {
+        commentService.toggleCommentLike(commentId);
+        return ResponseEntity.ok("게시물에 좋아요가 추가되었습니다.");
+    }
+
+    // 댓글 좋아요 상태 조회
+    @GetMapping("/status/{commentId}")
+    public ResponseEntity<CommentDTO> getPostCommentStatus(@PathVariable("commentId") Long commentId) {
+        CommentDTO likeStatus = commentService.getCommentLikeStatus(commentId);
+        return ResponseEntity.ok(likeStatus);
+    }
 }

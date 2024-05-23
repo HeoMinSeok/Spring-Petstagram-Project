@@ -19,7 +19,18 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
-    private final FileUploadService fileUploadService;
+
+    // 게시글 작성
+    @PostMapping("/write")
+    public ResponseEntity<String> writePost(@RequestPart("post") PostDTO postDTO, @RequestPart("file") MultipartFile file) {
+        try {
+            postService.writePost(postDTO, file);
+            return ResponseEntity.ok("게시글이 작성되었습니다.");
+        } catch (Exception e) {
+            log.error("파일 업로드 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("게시글 작성에 실패했습니다.");
+        }
+    }
 
     // 게시글 리스트 조회
     @GetMapping("/list")
@@ -33,18 +44,6 @@ public class PostController {
     public ResponseEntity<List<PostDTO>> getPostsByUserId(@PathVariable("userId") Long userId) {
         List<PostDTO> postDTOList = postService.getPostsByUserId(userId);
         return ResponseEntity.ok(postDTOList);
-    }
-
-    // 게시글 작성
-    @PostMapping("/write")
-    public ResponseEntity<String> writePost(@RequestPart("post") PostDTO postDTO, @RequestPart("file") MultipartFile file) {
-        try {
-            postService.writePost(postDTO, file);
-            return ResponseEntity.ok("게시글이 작성되었습니다.");
-        } catch (Exception e) {
-            log.error("파일 업로드 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("게시글 작성에 실패했습니다.");
-        }
     }
 
     // 게시글 상세보기
@@ -68,5 +67,19 @@ public class PostController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("게시글 삭제에 실패헀습니다.");
         }
+    }
+
+    // 게시물 좋아요 추가 및 삭제
+    @PostMapping("/toggle/{postId}")
+    public ResponseEntity<String> togglePostLike(@PathVariable("postId") Long postId) {
+        postService.togglePostLike(postId);
+        return ResponseEntity.ok("게시물에 좋아요가 추가되었습니다.");
+    }
+
+    // 게시물 좋아요 상태 조회
+    @GetMapping("/status/{postId}")
+    public ResponseEntity<PostDTO> getPostLikeStatus(@PathVariable("postId") Long postId) {
+        PostDTO likeStatus = postService.getPostLikeStatus(postId);
+        return ResponseEntity.ok(likeStatus);
     }
 }
