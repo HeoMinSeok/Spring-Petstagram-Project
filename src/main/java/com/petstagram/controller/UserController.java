@@ -49,6 +49,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(userId, userDTO));
     }
 
+    // 회원 프로필 편집
     @PutMapping(value = "/edit/{userId}", consumes = {"multipart/form-data"})
     public ResponseEntity<String> editUser(@PathVariable Long userId,
                                            @RequestPart("user") UserDTO userDTO,

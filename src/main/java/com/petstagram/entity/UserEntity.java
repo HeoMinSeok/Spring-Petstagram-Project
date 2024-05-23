@@ -10,9 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -49,11 +47,15 @@ public class UserEntity implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private ProfileImageEntity profileImage;
 
+    // 채팅방과 사용자는 다대다 관계
+    @ManyToMany(mappedBy = "users")
+    private Set<ChatRoomEntity> chatRooms = new HashSet<>();
+
     // 사용자와 메시지는 일대다 관계
-//    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<MessageEntity> sentMessages = new ArrayList<>(); // 메시지를 보낸 사용자의 식별자.
-//    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<MessageEntity> receivedMessages = new ArrayList<>(); // 메시지를 받은 사용자의 식별자.
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MessageEntity> sentMessages = new ArrayList<>(); // 메시지를 보낸 사용자의 식별자.
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MessageEntity> receivedMessages = new ArrayList<>(); // 메시지를 받은 사용자의 식별자.
 
     // == 연관관계 편의 메서드 == //
     // 게시물 관련 메서드
@@ -69,16 +71,23 @@ public class UserEntity implements UserDetails {
     }
 
     // 메시지 보내기 관련 메서드
-//    public void addSentMessage(MessageEntity message) {
-//        sentMessages.add(message);
-//        message.setSender(this);
-//    }
+    public void addSentMessage(MessageEntity message) {
+        sentMessages.add(message);
+        message.setSender(this);
+    }
 
     // 메시지 받기 관련 메서드
-//    public void addReceivedMessage(MessageEntity message) {
-//        receivedMessages.add(message);
-//        message.setReceiver(this);
-//    }
+    public void addReceivedMessage(MessageEntity message) {
+        receivedMessages.add(message);
+        message.setReceiver(this);
+    }
+
+    // 채팅방 참여 관련 메서드
+    public void joinChatRoom(ChatRoomEntity chatRoom) {
+        this.chatRooms.add(chatRoom);
+        chatRoom.getUsers().add(this);
+    }
+
 
     // DTO -> Entity
     public static UserEntity toEntity(UserDTO userDTO, BCryptPasswordEncoder bCryptPasswordEncoder) {

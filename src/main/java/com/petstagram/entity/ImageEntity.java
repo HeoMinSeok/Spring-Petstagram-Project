@@ -24,4 +24,8 @@ public class ImageEntity {
     @JoinColumn(name = "post_id")
     @JsonIgnore
     private PostEntity post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "message_id")
+    private MessageEntity message;
 }
