@@ -9,22 +9,17 @@ import java.time.format.DateTimeFormatter;
 @Getter
 public class NotificationDTO {
     private final Long id;
-    private final Long likerId;
+    private final Long fromUserId;
     private final Long postId;
+    private final Long commentId;
     private final String eventType;
     private final String regTime;
 
-//    public NotificationDTO(Long id, Long likerId, Long postId, String eventType) {
-//        this.id = id;
-//        this.likerId = likerId;
-//        this.postId = postId;
-//        this.eventType = eventType;
-//    }
-
-    public NotificationDTO(Long id, Long likerId, Long postId, String eventType, LocalDateTime regTime) {
+    public NotificationDTO(Long id, Long fromUserId, Long postId, Long commentId, String eventType, LocalDateTime regTime) {
         this.id = id;
-        this.likerId = likerId;
+        this.fromUserId = fromUserId;
         this.postId = postId;
+        this.commentId = commentId;
         this.eventType = eventType;
         this.regTime = regTime.format(DateTimeFormatter.ISO_DATE_TIME);
     }

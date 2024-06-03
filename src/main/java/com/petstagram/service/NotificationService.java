@@ -2,6 +2,7 @@ package com.petstagram.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.petstagram.dto.NotificationDTO;
+import com.petstagram.entity.CommentEntity;
 import com.petstagram.entity.NotificationEntity;
 import com.petstagram.entity.PostEntity;
 import com.petstagram.entity.UserEntity;
@@ -79,32 +80,71 @@ public class NotificationService {
         return emitter;
     }
 
-    public void sendNotification(Long userId, String eventType, Long likerId, Long postId) {
+    public void sendNotification(Long userId, String eventType, Long fromUserId, Long postId, Long commentId) {
+        UserEntity user = UserEntity.builder().id(userId).build();
+        UserEntity fromUser = UserEntity.builder().id(fromUserId).build();
+
+        if ("like".equals(eventType)) {
+            handleLikeNotification(userId, fromUserId, postId, eventType);
+        } else if ("following".equals(eventType)) {
+            handleFollowNotification(userId, fromUserId, eventType);
+        } else if ("comment".equals(eventType)) {
+            handleCommentNotification(userId, fromUserId, postId, commentId, eventType);
+        }
+    }
+
+    private void handleLikeNotification(Long userId, Long fromUserId, Long postId, String eventType) {
         PostEntity post = postRepository.findById(postId).orElse(null);
         if (post == null) {
-            return; // 게시글이 존재하지 않으면 알림을 보내지 않음
-        }
-
-        Long postAuthorId = post.getAuthorId(); // 게시글 작성자의 userId
-
-        // likerId와 게시글 작성자의 userId가 동일한 경우 알림 막음
-        if (likerId.equals(postAuthorId)) {
             return;
         }
 
-        // 알림이 이미 존재하는지 확인
-        Optional<NotificationEntity> existingNotification = notificationRepository.findByUserIdAndLikerIdAndPostIdAndEventType(userId, likerId, postId, eventType);
-        if (existingNotification.isPresent()) {
-            return; // 중복 알림이므로 알림을 보내지 않음
+        Long postAuthorId = post.getAuthorId();
+        if (fromUserId.equals(postAuthorId)) {
+            return;
         }
 
-        saveNotification(userId, likerId, postId, eventType);
+        Optional<NotificationEntity> existingNotification = notificationRepository.findByUserIdAndFromUserIdAndPostIdAndEventType(userId, fromUserId, postId, eventType);
+        if (existingNotification.isPresent()) {
+            return;
+        }
 
+        saveNotification(userId, fromUserId, postId, eventType);
+
+        sendSseEvent(userId, new NotificationDTO(null, fromUserId, postId, null, eventType, LocalDateTime.now()), eventType);
+    }
+
+    private void handleFollowNotification(Long userId, Long fromUserId, String eventType) {
+        Optional<NotificationEntity> existingNotification = notificationRepository.findByUserIdAndFromUserIdAndEventType(userId, fromUserId, eventType);
+        if (existingNotification.isPresent()) {
+            return;
+        }
+
+        saveNotification(userId, fromUserId, eventType);
+
+        sendSseEvent(userId, new NotificationDTO(null, fromUserId, null, null, eventType, LocalDateTime.now()), eventType);
+    }
+
+    private void handleCommentNotification(Long userId, Long fromUserId, Long postId, Long commentId, String eventType) {
+        Optional<NotificationEntity> existingNotification = notificationRepository.findByUserIdAndFromUserIdAndCommentIdAndEventType(userId, fromUserId, commentId, eventType);
+        if (userId.equals(fromUserId)) {
+            return;
+        }
+
+        if (existingNotification.isPresent()) {
+            return;
+        }
+
+        saveNotification(userId, fromUserId, postId, commentId, eventType);
+
+        sendSseEvent(userId, new NotificationDTO(null, fromUserId, postId, commentId, eventType, LocalDateTime.now()), eventType);
+    }
+
+    private void sendSseEvent(Long userId, NotificationDTO notificationData, String eventType) {
         var emitters = emitterRepository.getEmitters(userId);
         if (emitters != null) {
             for (SseEmitter emitter : emitters) {
                 try {
-                    NotificationDTO notificationData = new NotificationDTO(null, likerId, postId, eventType, LocalDateTime.now());
                     String jsonData = objectMapper.writeValueAsString(notificationData);
                     emitter.send(SseEmitter.event().name(eventType).data(jsonData));
                     System.out.println("Notification sent to emitter: " + jsonData);
@@ -120,11 +160,34 @@ public class NotificationService {
         }
     }
 
-    public void saveNotification(Long userId, Long likerId, Long postId, String eventType) {
+    // 좋아요 알림 save
+    public void saveNotification(Long userId, Long fromUserId, Long postId, String eventType) {
         NotificationEntity notification = NotificationEntity.builder()
                 .user(UserEntity.builder().id(userId).build())
-                .liker(UserEntity.builder().id(likerId).build())
+                .fromUser(UserEntity.builder().id(fromUserId).build())
                 .post(PostEntity.builder().id(postId).build())
+                .eventType(eventType)
+                .build();
+        notificationRepository.save(notification);
+    }
+
+    // 팔로우 알림 save
+    public void saveNotification(Long userId, Long fromUserId, String eventType) {
+        NotificationEntity notification = NotificationEntity.builder()
+                .user(UserEntity.builder().id(userId).build())
+                .fromUser(UserEntity.builder().id(fromUserId).build())
+                .eventType(eventType)
+                .build();
+        notificationRepository.save(notification);
+    }
+
+    // 댓글 알림 save
+    public void saveNotification(Long userId, Long fromUserId, Long postId, Long commentId, String eventType) {
+        NotificationEntity notification = NotificationEntity.builder()
+                .user(UserEntity.builder().id(userId).build())
+                .fromUser(UserEntity.builder().id(fromUserId).build())
+                .post(PostEntity.builder().id(postId).build())
+                .comment(CommentEntity.builder().id(commentId).build())
                 .eventType(eventType)
                 .build();
         notificationRepository.save(notification);
@@ -140,8 +203,9 @@ public class NotificationService {
     private NotificationDTO convertToDto(NotificationEntity notification) {
         return new NotificationDTO(
                 notification.getId(),
-                notification.getLiker().getId(),
-                notification.getPost().getId(),
+                notification.getFromUser().getId(),
+                notification.getPost() != null ? notification.getPost().getId() : null,
+                notification.getComment() != null ? notification.getComment().getId() : null,
                 notification.getEventType(),
                 notification.getRegTime()
         );

@@ -24,12 +24,16 @@ public class NotificationEntity extends BaseEntity {
     private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "liker_id")
-    private UserEntity liker;
+    @JoinColumn(name = "from_id")
+    private UserEntity fromUser;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private PostEntity post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id")
+    private CommentEntity comment;
 
     private String eventType;
 }

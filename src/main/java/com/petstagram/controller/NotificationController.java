@@ -1,7 +1,6 @@
 package com.petstagram.controller;
 
 import com.petstagram.dto.NotificationDTO;
-import com.petstagram.entity.NotificationEntity;
 import com.petstagram.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

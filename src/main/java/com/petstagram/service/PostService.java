@@ -178,7 +178,7 @@ public class PostService {
 
         if (isLiked) {
             // 좋아요를 눌렀을 때만 알림 생성 및 전송
-            notificationService.sendNotification(post.getUser().getId(), "like", user.getId(), post.getId());
+            notificationService.sendNotification(post.getUser().getId(), "like", user.getId(), post.getId(), null);
         }
     }
 
