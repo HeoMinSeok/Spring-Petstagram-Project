@@ -57,6 +57,10 @@ public class UserEntity implements UserDetails {
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MessageEntity> receivedMessages = new ArrayList<>(); // 메시지를 받은 사용자의 식별자.
 
+    // 신고 유저
+    @OneToMany(mappedBy = "reportedUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BannedEntity> bans;
+
     // == 연관관계 편의 메서드 == //
     // 게시물 관련 메서드
     public void addPost(PostEntity post) {

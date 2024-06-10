@@ -20,6 +20,7 @@ public class PostDTO {
     private Long id; // 게시물 고유 식별자
     private String postContent; // 게시물 내용(텍스트, 이미지, 비디오 링크 등).
     private String breed;
+    private Long userId;
     private String email; // 게시물을 작성한 사용자 email
     private String regTime;
     private List<ImageDTO> imageList;
@@ -34,6 +35,7 @@ public class PostDTO {
                 .id(postEntity.getId())
                 .postContent(postEntity.getPostContent())
                 .breed(postEntity.getBreed())
+                .userId(postEntity.getUser().getId())
                 .email(postEntity.getUser().getEmail())
                 .regTime(postEntity.getRegTime().format(DateTimeFormatter.ISO_DATE_TIME))
                 .imageList(postEntity.getImageList().stream()
