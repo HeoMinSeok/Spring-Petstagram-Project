@@ -29,11 +29,10 @@ public class UserEntity implements UserDetails {
     private String name;
     private String password;
     private String role = "USER";
-
-    // 추가
-    private String gender; // 성별
-    private String bio; // 사용자 소개
-    private Boolean isRecommend; // 추천 여부, 기본값은 false
+    private String gender;
+    private String bio;
+    private Boolean isRecommend;
+    private String phone;
 
     // 사용자와 게시물은 일대다 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -104,6 +103,7 @@ public class UserEntity implements UserDetails {
                 .gender(userDTO.getGender())
                 .bio(userDTO.getBio())
                 .isRecommend(userDTO.getIsRecommend())
+                .phone(userDTO.getPhone())
                 .build();
 
         // ProfileImageDTO가 존재하면 ProfileImageEntity로 변환하여 설정

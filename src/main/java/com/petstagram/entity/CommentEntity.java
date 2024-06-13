@@ -70,4 +70,9 @@ public class CommentEntity extends BaseEntity {
         this.replyCommentList.add(replyCommentEntity);
         replyCommentEntity.setComment(this);
     }
+
+    // 댓글 작성자의 ID를 반환하는 메서드
+    public Long getAuthorId() {
+        return this.user != null ? this.user.getId() : null;
+    }
 }

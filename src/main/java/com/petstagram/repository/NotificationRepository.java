@@ -18,6 +18,9 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
     // 댓글 중복 알림 확인
     Optional<NotificationEntity> findByUserIdAndFromUserIdAndCommentIdAndEventType(Long userId, Long fromUserId, Long commentId, String eventType);
 
+    // 대댓글 중복 알림 확인
+    Optional<NotificationEntity> findByUserIdAndFromUserIdAndReplyIdAndEventType(Long userId, Long fromUserId, Long replyId, String eventType);
+
     // 댓글 ID로 알림 삭제
     void deleteByCommentId(Long commentId);
     void deleteByPostId(Long postId);

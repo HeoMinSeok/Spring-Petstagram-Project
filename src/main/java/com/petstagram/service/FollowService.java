@@ -30,7 +30,7 @@ public class FollowService {
                 throw new Exception("FOLLOW_DUPLICATED: 이미 follow 했습니다");
             } else {
                 follow.setStatus(true);
-                notificationService.sendNotification(toUser.getId(), "following", fromUser.getId(), null, null);
+                notificationService.sendNotification(toUser.getId(), "following", fromUser.getId(), null, null, null);
                 followRepository.save(follow);
 
                 return;
@@ -44,7 +44,7 @@ public class FollowService {
                 .build();
 
         followRepository.save(follow);
-        notificationService.sendNotification(toUser.getId(), "following", fromUser.getId(), null, null);
+        notificationService.sendNotification(toUser.getId(), "following", fromUser.getId(), null, null, null);
     }
 
     public void unfollow(UserEntity fromUser, UserEntity toUser) throws Exception {

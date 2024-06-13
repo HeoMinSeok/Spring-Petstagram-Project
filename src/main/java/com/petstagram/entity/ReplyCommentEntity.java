@@ -33,6 +33,10 @@ public class ReplyCommentEntity extends BaseEntity {
     @JsonIgnore
     private CommentEntity comment;
 
+    public Long getPostId() {
+        return comment.getPost().getId();
+    }
+
     // == 연관관계 편의 메서드 == //
     // 댓글에 대댓글 추가하는 메서드
     public void addReplyComment(ReplyCommentEntity replyCommentEntity) {
