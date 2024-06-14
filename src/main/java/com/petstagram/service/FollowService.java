@@ -4,7 +4,9 @@ import com.petstagram.dto.UserDTO;
 import com.petstagram.entity.FollowEntity;
 import com.petstagram.entity.UserEntity;
 import com.petstagram.repository.FollowRepository;
+import com.petstagram.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 public class FollowService {
 
     private final FollowRepository followRepository;
+    private final UserRepository userRepository;
     private final NotificationService notificationService;
 
     public void follow(UserEntity fromUser, UserEntity toUser) throws Exception {
@@ -66,6 +69,18 @@ public class FollowService {
         return followers.stream()
                 .map(UserDTO::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    public int getFollowersCount(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+        return countFollowers(user);
+    }
+
+    public int getFollowingsCount(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+        return countFollowings(user);
     }
 
     public boolean isFollowing(UserEntity fromUser, UserEntity toUser) {
