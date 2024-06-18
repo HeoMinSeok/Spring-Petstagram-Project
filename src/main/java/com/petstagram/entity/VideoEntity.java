@@ -1,24 +1,22 @@
-
 package com.petstagram.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
-@Table(name = "images")
 @Getter
 @Setter
-public class ImageEntity {
+@Table(name = "videos")
+public class VideoEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "image_id")
+    @Column(name = "video_id")
     private Long id;
 
-    private String imageName;
-    private String imageUrl;
+    private String videoName;
+    private String videoUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")

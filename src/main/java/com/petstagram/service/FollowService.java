@@ -8,6 +8,7 @@ import com.petstagram.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ public class FollowService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
+    @Transactional
     public void follow(UserEntity fromUser, UserEntity toUser) throws Exception {
         // 본인 follow x
         if (fromUser.equals(toUser)) {
@@ -57,6 +59,7 @@ public class FollowService {
         followRepository.delete(follow);
     }
 
+    @Transactional(readOnly = true)
     public List<UserDTO> getFollowingList(UserEntity user) {
         List<UserEntity> followings = followRepository.findFollowingsByUser(user);
         return followings.stream()
@@ -64,6 +67,7 @@ public class FollowService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<UserDTO> getFollowerList(UserEntity user) {
         List<UserEntity> followers = followRepository.findFollowersByUser(user);
         return followers.stream()
@@ -71,28 +75,33 @@ public class FollowService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public int getFollowersCount(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
         return countFollowers(user);
     }
 
+    @Transactional(readOnly = true)
     public int getFollowingsCount(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
         return countFollowings(user);
     }
 
+    @Transactional(readOnly = true)
     public boolean isFollowing(UserEntity fromUser, UserEntity toUser) {
         return followRepository.findFollow(fromUser, toUser)
                 .map(FollowEntity::getStatus)
                 .orElse(false);
     }
 
+    @Transactional(readOnly = true)
     public int countFollowers(UserEntity user) {
         return followRepository.findFollowersByUser(user).size();
     }
 
+    @Transactional(readOnly = true)
     public int countFollowings(UserEntity user) {
         return followRepository.findFollowingsByUser(user).size();
     }

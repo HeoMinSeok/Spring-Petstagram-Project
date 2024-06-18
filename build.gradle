@@ -38,6 +38,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'jakarta.validation:jakarta.validation-api:3.0.0'
 
+	// websocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 	// CoolSMS
 	implementation 'net.nurigo:sdk:4.3.0'
 }

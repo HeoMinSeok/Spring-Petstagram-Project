@@ -46,9 +46,12 @@ public class UserEntity implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private ProfileImageEntity profileImage;
 
-    // 채팅방과 사용자는 다대다 관계
-    @ManyToMany(mappedBy = "users")
-    private Set<ChatRoomEntity> chatRooms = new HashSet<>();
+    // 채팅방과 사용자는 일대다 관계
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomEntity> sentChatRooms = new ArrayList<>();
+
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChatRoomEntity> receivedChatRooms = new ArrayList<>();
 
     // 사용자와 메시지는 일대다 관계
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -73,22 +76,16 @@ public class UserEntity implements UserDetails {
         comment.setUser(this);
     }
 
-    // 메시지 보내기 관련 메서드
-    public void addSentMessage(MessageEntity message) {
-        sentMessages.add(message);
-        message.setSender(this);
+    // 채팅방 관련 메서드
+    public void addSentChatRoom(ChatRoomEntity chatRoom) {
+        this.sentChatRooms.add(chatRoom);
+        chatRoom.setSender(this);
     }
 
-    // 메시지 받기 관련 메서드
-    public void addReceivedMessage(MessageEntity message) {
-        receivedMessages.add(message);
-        message.setReceiver(this);
-    }
-
-    // 채팅방 참여 관련 메서드
-    public void joinChatRoom(ChatRoomEntity chatRoom) {
-        this.chatRooms.add(chatRoom);
-        chatRoom.getUsers().add(this);
+    // 채팅방 관련 메서드
+    public void addReceivedChatRoom(ChatRoomEntity chatRoom) {
+        this.receivedChatRooms.add(chatRoom);
+        chatRoom.setReceiver(this);
     }
 
 
