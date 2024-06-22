@@ -1,4 +1,3 @@
-
 package com.petstagram.service;
 
 import com.petstagram.dto.ChatRoomDTO;
@@ -8,6 +7,7 @@ import com.petstagram.repository.ChatRoomRepository;
 import com.petstagram.repository.MessageRepository;
 import com.petstagram.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,10 +34,9 @@ public class ChatRoomService {
         activeUserRooms.put(email, roomId);
     }
 
-//    public void removeUserActiveRoom(String email) {
-//        userRepository.findByEmail(email);
-//        activeUserRooms.remove(email);
-//    }
+    public void removeUserActiveRoom(String email) {
+        activeUserRooms.remove(email);
+    }
 
     public Long getUserActiveRoom(String email) {
         return activeUserRooms.get(email);
@@ -99,19 +98,51 @@ public class ChatRoomService {
         messageEntity.setRegTime(LocalDateTime.now());
 
         // 이미지 URL 을 저장
-        if (messageDTO.getImageUrl() != null && !messageDTO.getImageUrl().isEmpty()) {
-            try {
-                ImageEntity imageEntity = new ImageEntity();
-                imageEntity.setImageUrl(messageDTO.getImageUrl());
-                imageEntity.setMessage(messageEntity);
+        if (messageDTO.getImageUrls() != null && !messageDTO.getImageUrls().isEmpty()) {
+            for (String imageUrl : messageDTO.getImageUrls()) {
+                try {
+                    ImageEntity imageEntity = new ImageEntity();
+                    imageEntity.setImageUrl(imageUrl);
+                    imageEntity.setMessage(messageEntity);
 
-                List<ImageEntity> imageList = messageEntity.getImageList();
-                imageList.add(imageEntity);
-                messageEntity.setImageList(imageList);
-            } catch (Exception e) {
-                throw new RuntimeException("이미지 저장에 실패했습니다.", e);
+                    messageEntity.getImageList().add(imageEntity);
+                } catch (Exception e) {
+                    throw new RuntimeException("이미지 저장에 실패했습니다.", e);
+                }
             }
         }
+
+        // 연관관계 편의 메서드 설정
+        chatRoom.addMessage(messageEntity);
+
+        // 메시지 저장
+        MessageEntity savedMessage = messageRepository.save(messageEntity);
+
+        return MessageDTO.toDTO(savedMessage);
+    }
+
+    @Transactional
+    public MessageDTO sendAudioMessage(MessageDTO messageDTO, Principal principal) {
+
+        String name = principal.getName();
+        UserEntity sender = userRepository.findByEmail(name)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 받는 사람 찾기
+        UserEntity receiver = userRepository.findById(messageDTO.getReceiverId())
+                .orElseThrow(() -> new IllegalArgumentException("수신자가 존재하지 않습니다."));
+
+        // 채팅방 찾기
+        ChatRoomEntity chatRoom = chatRoomRepository.findById(messageDTO.getChatRoomId())
+                .orElseThrow(() -> new RuntimeException("채팅방을 찾을 수 없습니다."));
+
+        // DTO 를 Entity 로 변환하고 사용자 정보 설정
+        MessageEntity messageEntity = new MessageEntity();
+        messageEntity.setAudioUrl(messageDTO.getAudioUrl());  // 음성 메시지 URL 설정
+        messageEntity.setChatRoom(chatRoom);
+        messageEntity.setSender(sender);
+        messageEntity.setReceiver(receiver);
+        messageEntity.setRegTime(LocalDateTime.now());
 
         // 연관관계 편의 메서드 설정
         chatRoom.addMessage(messageEntity);

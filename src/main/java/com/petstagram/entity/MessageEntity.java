@@ -1,5 +1,4 @@
 
-
 package com.petstagram.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -53,4 +52,6 @@ public class MessageEntity extends BaseEntity{
     // 메시지와 비디오는 일대다 관계
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VideoEntity> videoList = new ArrayList<>();
+
+    private String audioUrl;
 }

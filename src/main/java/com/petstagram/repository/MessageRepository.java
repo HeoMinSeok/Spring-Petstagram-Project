@@ -1,6 +1,7 @@
 package com.petstagram.repository;
 
 import com.petstagram.entity.MessageEntity;
+import com.petstagram.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +23,5 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     // 사용자의 모든 읽지 않은 메시지 개수를 계산하는 쿼리 메서드
     @Query("SELECT COUNT(m) FROM MessageEntity m WHERE m.receiver.id = :userId AND m.isRead = false")
     Long countUnreadMessagesForUser(@Param("userId") Long userId);
+
 }
