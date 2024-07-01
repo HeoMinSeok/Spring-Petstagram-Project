@@ -1,4 +1,3 @@
-
 package com.petstagram.entity;
 
 import com.petstagram.dto.ProfileImageDTO;
@@ -38,6 +37,10 @@ public class UserEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostEntity> postList = new ArrayList<>();
 
+    // 사용자와 스토리는 일대다 관계
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StoryEntity> storyList = new ArrayList<>();
+
     // 사용자와 댓글은 일대다 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommentEntity> commentList = new ArrayList<>();
@@ -68,6 +71,12 @@ public class UserEntity implements UserDetails {
     public void addPost(PostEntity post) {
         postList.add(post);
         post.setUser(this);
+    }
+
+    // 스토리 관련 메서드
+    public void addStory(StoryEntity story) {
+        storyList.add(story);
+        story.setUser(this);
     }
 
     // 댓글 관련 메서드

@@ -1,2 +1,2 @@
 /* 쿼리문 실험 */
-DELETE FROM hashtags WHERE hashtag_id = 3
+DELETE FROM stories where story_id = 3;
